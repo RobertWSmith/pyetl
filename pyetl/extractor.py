@@ -164,19 +164,19 @@ class LocalTable(yaml.YAMLObject):
     _engine = None
     transformer = None
 
-    def __init__(self, local_engine, schema, tablename, input_dialect, transformer=None):
+    def __init__(self, local_engine, declarative_table, input_dialect, transformer=None):
         self.transformer = transformer
         self.local_engine = local_engine
-        self.schema = schema
-        self.tablename = tablename
+        self.declarative_table = declarative_table
+#        self.schema = schema
+#        self.tablename = tablename
         self.input_dialect = input_dialect
 
     @classmethod
     def from_yaml(cls, loader, node):
         fields = loader.construct_mapping(node, deep=True)
-        return cls(fields['local_engine'], fields['schema'], fields['tablename'],
+        return cls(fields['local_engine'], fields['declarative_table'],
                    fields['input_dialect'], fields.get('transformer'))
-
     @property
     def engine(self):
         if self._engine is None:
@@ -188,6 +188,14 @@ class LocalTable(yaml.YAMLObject):
         self._metadata.reflect(bind=self.engine, schema=self.schema)
         return self._metadata
 
+    @property
+    def schema(self):
+        return self.table.schema
+
+    @property
+    def tablename(self):
+        return self.table.name
+
     @metadata.setter
     def metadata(self, value):
         self._metadata = value
@@ -195,7 +203,7 @@ class LocalTable(yaml.YAMLObject):
 
     @property
     def table(self):
-        return Table(self.tablename, self.metadata, autoload=True, autoload_with=self.engine)
+        return self.declarative_table.__table__
 
     @property
     def columns(self):
