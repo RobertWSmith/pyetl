@@ -9,11 +9,13 @@ from setuptools import setup, find_packages
 
 setup(
     name="pyetl",
-    version = "0.0.1",
-    packages = find_packages(exclude=["*.tests", "*.tests.*", "tests.*", "tests", "*.egg-info"]),
+    version = "0.0.2",
+    packages = find_packages(exclude=["*.tests", "*.tests.*", "tests.*", "tests",
+                                      "*.egg-info"]),
     author = "Robert Smith",
     author_email = "rob_smith@goodyear.com",
     description = "utilities for extract, transform & load",
-    install_requires = ['pyodbc', 'psycopg2'],
+    install_requires = ['pyodbc >= 3.0', 'psycopg2 >= 2.6', 'python-dateutil >= 2.4',
+                        'pyyaml >= 3.11'],
     test_suite = 'tests'
 )
