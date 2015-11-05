@@ -7,11 +7,7 @@ Created on Wed Sep 16 08:31:22 2015
 
 import datetime
 import yaml
-
-#import copy
-import dateutil
-#import enum
-
+from dateutil.relativedelta import relativedelta
 
 
 class DateGenerator(yaml.YAMLObject):
@@ -50,50 +46,16 @@ class DateGenerator(yaml.YAMLObject):
     def from_yaml(cls, loader, node):
         fields = loader.construct_mapping(node, deep=True)
         start_date = fields['start_date']
-        if isinstance(start_date, str):
-            today = datetime.date.today()
-            yesterday = today - datetime.timedelta(days=1)
+        if isinstance(start_date, str) and start_date == 'first of month':
+            yesterday = datetime.date.today() - datetime.timedelta(days=1)
             first_of_month = datetime.date(yesterday.year, yesterday.month, 1)
-            if start_date == 'first of month':
-                if yesterday.day < 5:
-                    first_of_month = dateutil.relativedelta.relativedelta(months=1)
-                start_date = first_of_month
+            if yesterday.day < 7:
+                first_of_month = first_of_month - relativedelta(months=1)
+            start_date = first_of_month
         end_date = fields.get('end_date', DateGenerator.yesterday)
         iter_interval = fields.get('iter_interval', DateGenerator.base_interval)
+        if iter_interval == 'month':
+            iter_interval = relativedelta(months=1) - relativedelta(days=1)
         _class = cls(start_date, end_date, iter_interval)
         return _class
-
-
-#class MonthToDate(DateGenerator):
-#
-#    yaml_tag = '!MonthToDate'
-#
-#    def __init__(self):
-#        begin_date = datetime.date(MonthToDate.yesterday.year, MonthToDate.yesterday.month, 1)
-#        if MonthToDate.yesterday.day < 5:
-#            begin_date = begin_date - dateutil.relativedelta.relativedelta(months=1)
-#        super().__init__(begin_date, MonthToDate.yesterday, MonthToDate.base_interval)
-#
-#    @classmethod
-#    def from_yaml(cls, loader, node):
-#        _class = super().__new__(cls, DateGenerator.first_of_month, DateGenerator.yesterday, DateGenerator.base_interval)
-#        return _class
-
-
-#class EpochToDate(DateGenerator):
-#
-#    yaml_tag = '!EpochToDate'
-#
-#    def __init__(self, start_date, iter_interval=datetime.timedelta(weeks=2)):
-#        super().__init__(start_date, EpochToDate.yesterday, iter_interval)
-#
-#    @classmethod
-#    def from_yaml(cls, loader, node):
-#        fields = loader.construct_mapping(node, deep=True)
-#        _class = cls(fields['start_date'], fields.get('iter_interval', DateGenerator.base_interval))
-#        _class.start_date = fields['start_date']
-#        _class._iter_start = _class.start_date
-#        return _class
-
-
 

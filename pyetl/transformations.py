@@ -26,7 +26,7 @@ def named_tuple_factory(typename, field_names, verbose=False, rename=False):
                 return super().__getitem__(key)
 
         def __setitem__(self, key, value):
-            return self._replace(**{str(key): value})
+            self = self._replace(**{str(key): value})
 
         def __contains__(self, key):
             return str(key) in self._fields
@@ -40,8 +40,8 @@ class TransformPipeline(yaml.YAMLObject):
     transforms = {}
 
     def __init__(self, **transforms):
-        if transforms is not None and len(dict(transforms)) > 0:
-            self.transforms = dict(transforms)
+        if transforms is not None and len(transforms) > 0:
+            self.transforms = transforms
 
     @classmethod
     def from_yaml(cls, loader, node):
@@ -54,7 +54,8 @@ class TransformPipeline(yaml.YAMLObject):
     def convert(self, row):
         for key, value in self.transforms.items():
             if key in row:
-                row[key] = self.transforms[key](row[key])
+                row = row._replace(**{str(key): self.transforms[key].convert(row[key])})
+#                row[key] = self.transforms[key](row[key])
         return row
 
 
